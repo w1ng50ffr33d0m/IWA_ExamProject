@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Edit Tour{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="alert alert-warning alert-dismissible fade show">
+            <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+            <p  class="m-0 px-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {% if has_reservations %}
+                    <strong>Tour is booked!</strong> You can update the title, description, stops and photos, but essential details are locked.
+                {% else %}
+                    <strong>You can edit all details because no one has booked this tour yet.</strong>
+                {% endif %}
+            </p>
+        </div>
+        <main class="col-md-8 col-lg-6 mb-5">
+            
+            <section class="bg-dark p-4 p-md-5 border rounded shadow-sm">
+                <header class="mb-4 text-center">
+                    <h2>Edit Tour Details</h2>
+                </header>
+                
+                <form action="/edit_tour/{{ tour.id }}" method="POST" enctype="multipart/form-data">
+                    
+                    <div class="mb-3">
+                        <label for="tour-title" class="form-label fw-bold">Tour Title</label>
+                        <input type="text" class="form-control" id="tour-title" name="title" value="{{ tour.title | e }}" required>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="tour-language" class="form-label fw-bold">Language</label>
+                            <select class="form-select" id="tour-language" name="language" required {% if has_reservations %}disabled{% endif %}>
+                                {% set user_langs = current_user.languages.split(', ') %}
+                                {% for lang in user_langs %}
+                                    {% if lang %}
+                                        <option value="{{ lang | e }}" {% if lang == tour.language %}selected{% endif %}>{{ lang | e }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tour-duration" class="form-label fw-bold">Duration (Minutes)</label>
+                            <input type="number" class="form-control" id="tour-duration" name="duration" min="15" step="15" value="{{ tour.duration | e }}" required {% if has_reservations %}disabled{% endif %}>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meeting-point" class="form-label fw-bold">Meeting Point</label>
+                        <input type="text" class="form-control" id="meeting-point" name="meeting_point" value="{{ tour.meeting_point | e }}" required {% if has_reservations %}disabled{% endif %}>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max-participants" class="form-label fw-bold">Max Participants</label>
+                        <input type="number" class="form-control" id="max-participants" name="max_participants" min="1" max="50" value="{{ tour.max_participants | e }}" required {% if has_reservations %}disabled{% endif %}>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tour-description" class="form-label fw-bold">Description</label>
+                        <textarea class="form-control" id="tour-description" name="description" rows="5" required>{{ tour.description | e }}</textarea>
+                    </div>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Itinerary Stops (Minimum 4)</legend>
+                        <div id="stops-container">
+                            {% for stop in tour.stops %}
+                                <input type="text" class="form-control mb-2" name="stops" value="{{ stop.stop_name | e }}" required>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-1 d-flex gap-1 align-items-center" onclick="addStopField()">
+                            <i class="bi bi-plus-circle"></i><span>Add another stop</span>
+                        </button>
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Weekly Schedule</legend>
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            
+                            {% set ns = namespace(is_checked=false, start_time="") %}
+                            
+                            {% for s in tour.schedules %}
+                                {% if s.weekday == day %}
+                                    {% set ns.is_checked = true %}
+                                    {% set ns.start_time = s.start_time %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="d-flex mb-2 align-items-center">
+                                <div class="form-check w-25">
+                                    <input type="checkbox" name="days" value="{{ day | e }}" class="form-check-input" id="day-{{ day | e }}" {% if ns.is_checked %}checked{% endif %} {% if has_reservations %}disabled{% endif %}>
+                                    <label class="form-check-label" for="day-{{ day | e }}">{{ day | e }}</label>
+                                    
+                                    {% if has_reservations and ns.is_checked %}
+                                        <input type="hidden" name="days" value="{{ day | e }}">
+                                    {% endif %}
+                                </div>
+                                
+                                <input type="time" name="time_{{ day | e }}" class="form-control w-50" value="{{ ns.start_time | e }}" {% if has_reservations %}disabled{% endif %}>
+                                
+                                {% if has_reservations and ns.is_checked %}
+                                    <input type="hidden" name="time_{{ day | e }}" value="{{ ns.start_time | e }}">
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Update Promotional Photos</legend>
+                        <p class="text-muted small">Upload any new photo if you wish to overwrite the current ones.</p>
+                        {% for photo_id in range(0,5) %}
+                            <div class="d-flex gap-3 align-items-center">
+                                <a target="_blank" href="{{url_for('static', filename=tour.photos[photo_id]["tour_photos"])}}" class="custom-link text-nowrap">
+                                    Photo {{ photo_id + 1 }}:
+                                </a>
+                                <input id="tour-photo-{{photo_id}}" class="form-control mb-2" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg">
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+
+                    <footer class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5">Save Changes</button>
+                        <a href="{{ url_for('guide_page') }}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                    </footer>
+                    
+                </form>
+            </section>
+            
+        </main>
+    </div>
+</div>
+
+<script>
+    // handles addition of itinerary stops
+    let stopCount = parseInt('{{ tour.stops|length }}', 10);
+
+    function addStopField() {
+        stopCount++;
+        const container = document.getElementById('stops-container');
+        const newInput = document.createElement('input');
+
+        newInput.type = 'text';
+        newInput.className = 'form-control mb-2';
+        newInput.name = 'stops';
+        newInput.placeholder = `Stop ${stopCount} (Optional)`;
+        container.appendChild(newInput);
+    }
+</script>
+{% endblock %}

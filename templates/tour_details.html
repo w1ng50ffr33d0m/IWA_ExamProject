@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}{{ tour.title | e }}{% endblock %}
+
+{% block content %}
+
+<div id="tourPhotoCarousel" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel" data-bs-pause="false">
+    
+    <div class="carousel-indicators mb-4 z-3">
+        {% for photo in tour.photos %}
+            <button type="button" data-bs-target="#tourPhotoCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" aria-current="true" aria-label="Slide {{ loop.index }}"></button>
+        {% endfor %}
+    </div>
+
+    <div class="carousel-container">
+        {% for photo in tour.photos %}
+        <div class="carousel-item h-100 {% if loop.first %}active{% endif %}">
+            <img src="{{ url_for('static', filename=photo.tour_photos) }}" class="d-block w-100 h-100 carousel-img" alt="Tour Photo">
+            <div class="position-absolute bottom-0 start-0 w-100 h-50 gradient-overlay"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="position-absolute bottom-0 start-0 w-100 pb-5 z-2">
+        <div class="container">
+            <div class="row align-items-end">
+                <div class="col-lg-8">
+                    <h1 class="display-3 fw-bolder text-white mb-2 text-shadow-heavy">{{ tour.title | e }}</h1>
+                    <p class="fs-4 text-light mb-0 text-shadow-medium">
+                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>Meeting Point: {{ tour.meeting_point | e }}
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a href="{{ url_for('public_guide', id=tour.guide_id) }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg">
+                        Meet Your Guide <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="carousel-control-prev carousel-nav-btn" type="button" data-bs-target="#tourPhotoCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon carousel-nav-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next carousel-nav-btn" type="button" data-bs-target="#tourPhotoCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon carousel-nav-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <main class="col-12 mb-5 px-lg-4">
+
+            <div class="row position-relative">
+                
+                <div class="col-lg-8 pe-lg-5 mb-5">
+
+                    <h3 class="fw-bold mb-3">About This Tour</h3>
+                    <p class="text-muted fs-5 mb-5 tour-description">{{ tour.description | e }}</p>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-4">
+                            <h4 class="fw-bold mb-4"><i class="bi bi-geo-alt text-danger"></i> Itinerary</h4>
+                            <div class="border-start border-3 border-danger ps-4 ms-2">
+                                <ul class="list-unstyled">
+                                    {% for stop in tour.stops %}
+                                    <li class="mb-4 position-relative fs-5 text-dark">
+                                        <i class="bi bi-circle-fill text-danger position-absolute itinerary"></i>
+                                        {{ stop.stop_name | e }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <h4 class="fw-bold mb-4 d-flex gap-2"><i class="bi bi-calendar-event text-danger"></i> Weekly Schedule</h4>
+                            <ul class="list-group shadow-sm rounded-4 border-0">
+                                {% for sched in tour.schedules %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 border-bottom border-secondary py-3 bg-transparent">
+                                    <strong class="text-light">{{ sched.weekday | e }}</strong>
+                                    <span class="badge bg-primary rounded-pill fs-6">{{ sched.start_time | e }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-top sticky-sidebar">
+
+                        <div class="bg-dark p-4 rounded-4 shadow-sm mb-4 text-center">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <i class="bi bi-translate text-secondary fs-4 d-block mb-1"></i>
+                                    <strong class="small">{{ tour.language | e }}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-stopwatch text-secondary fs-4 d-block mb-1"></i>
+                                    <strong class="small">{{ tour.duration | e }} min</strong>
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-people text-secondary fs-4 d-block mb-1"></i>
+                                    <strong class="small">Max {{ tour.max_participants | e }}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-signpost text-secondary fs-4 d-block mb-1"></i>
+                                    <strong class="small">{{ tour.stops | length }} Stops</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <article class="card mb-4">
+                            <header class="card-header bg-primary border-0 text-white py-3 text-center">
+                                <h5 class="mb-0 fw-bold text-uppercase tracking-wide">Reserve Your Spot</h5>
+                            </header>
+                            <div class="card-body p-4">
+                                
+                                {% if not current_user.is_authenticated %}
+                                    <p class="text-muted text-center mb-4">You must be logged in as a participant to book this tour.</p>
+                                    <button type="button" class="btn btn-outline-info w-100 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#login-modal">Log In to Book</button>
+                                
+                                {% elif current_user.role == 'guide' %}
+                                    <div class="mb-0 text-center rounded-4 shadow-sm">
+                                        <strong>Notice:</strong> Tour guides cannot book reservations as participants.
+                                    </div>
+                                
+                                {% else %}
+                                    <form action="/tour_reservation" method="POST" id="booking-form">
+                                        <input type="hidden" name="tour_id" value="{{ tour.id }}">
+                                        
+                                        <div class="mb-4">
+                                            <label for="tour-date" class="form-label fw-bold text-dark">Select Date</label>
+                                            <input type="date" name="tour_date" id="tour-date" class="form-control form-control-lg rounded-3 shadow-sm border-0" required>
+                                            <div class="form-text small mt-2">Ensure the date matches the weekly schedule.</div>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label for="num-people-select" class="form-label fw-bold text-dark">Number of People</label>
+                                            <input type="number" class="form-control form-control-lg rounded-3 shadow-sm border-0" name="num_people" id="num-people-select" min="1" max="4" value="1" oninput="toggleNamesField()" required>
+                                            <div class="form-text small mt-2">Max 4 people per reservation.</div>
+                                        </div>
+
+                                        <div class="mb-4 d-none" id="extra-names-div">
+                                            <label for="extra-names" class="form-label fw-bold text-dark">Additional Names</label>
+                                            <textarea class="form-control rounded-3 shadow-sm border-0" name="extra_names" id="extra-names" rows="2" placeholder="Jane Doe, John Smith"></textarea>
+                                            <div class="form-text small mt-2">Make sure you write only the extra names and surnames, separated by commas.</div>
+                                        </div>
+                                        
+                                        {% with messages = get_flashed_messages(with_categories=true) %}
+                                            {% if messages %}
+                                                {% for category, message in messages %}
+                                                    {% if category == 'booking-error' %}
+                                                    <div id="backend-alert" class="alert alert-danger mt-3">
+                                                        {{ message }}
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endwith %}
+                                        
+                                        <button type="submit" class="btn btn-primary w-100 fs-5 fw-bold rounded-pill shadow mt-2 py-2">Confirm Booking</button>
+                                    </form>
+
+                                    <script>
+                                        function toggleNamesField() {
+                                            const num = document.getElementById('num-people-select').value;
+                                            const namesDiv = document.getElementById('extra-names-div');
+                                            const namesTextarea = document.getElementById('extra-names');
+                                            
+                                            if (num > 1) {
+                                                namesDiv.classList.remove('d-none');
+                                                namesTextarea.required = true;
+                                            } else {
+                                                namesDiv.classList.add('d-none');
+                                                namesTextarea.required = false;
+                                                namesTextarea.value = '';
+                                            }
+                                        }
+                                    </script>
+                                {% endif %}
+                                
+                            </div>
+                        </article>
+                        
+                        {% if user_bookings %}
+                            {% set upcoming = user_bookings | selectattr("tour_date_obj", "gt", today) | list %}
+                            {% set past = user_bookings | selectattr("tour_date_obj", "le", today) | list %}
+
+                            {% if upcoming %}
+                            <article class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+                                <header class="card-header bg-primary text-white justify-content-center gap-2">
+                                    <i class="bi bi-calendar-check mb-0"></i><h6 class="mb-0 fw-bold">Upcoming Bookings</h6>
+                                </header>
+                                <ul class="list-group list-group-flush shadow-sm">
+                                    {% for b in upcoming %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom border-secondary bg-transparent text-light">
+                                            {{ b.tour_date | e }}
+                                            <span class="badge bg-info rounded-pill">Confirmed</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </article>
+                            {% endif %}
+
+                            {% if past %}
+                            <article class="card shadow-sm border-0 rounded-4 mb-3 overflow-hidden">
+                                <header class="card-header text-white justify-content-center gap-2">
+                                    <i class="bi bi-clock-history mb-0"></i><h6 class="mb-0 fw-bold">Past Bookings</h6>
+                                </header>
+                                <ul class="list-group list-group-flush">
+                                    {% for b in past %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center text-muted py-3">
+                                            {{ b.tour_date | e }}
+                                            <span class="badge bg-secondary rounded-pill">Completed</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </article>
+                            {% endif %}
+
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

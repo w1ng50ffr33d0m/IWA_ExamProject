@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block home_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-end border-bottom border-secondary pb-2 mb-4">
+        <h2 class="m-0 text-white">AVAILABLE TOURS</h2>
+        <button class="btn btn-outline-info btn-sm px-4" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+            <i class="bi bi-sliders"></i> FILTER
+        </button>
+    </div>
+
+    <div class="collapse mb-4" id="filterPanel">
+        <div class="border rounded p-3">
+            <form action="/" method="GET" class="row">
+                
+                <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                    <label class="form-label">Date Range</label>
+                    <div class="d-flex gap-2">
+                        <input class="form-control" type="date" name="date_start" title="Start Date">
+                        <input class="form-control" type="date" name="date_end" title="End Date">
+                    </div>
+                    <div class="form-text small">Leave one blank for a single day.</div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                    <label for="duration" class="form-label">Max Duration (Minutes)</label>
+                    <input class="form-control" type="number" name="duration" id="duration" min="30" step="30" placeholder="e.g. 120">
+                </div>
+                
+                <div class="col-lg-5 col-md-12 mb-3 mb-lg-0">
+                    <label class="form-label">Languages</label>
+                    <div class="d-flex flex-wrap gap-2 pt-1">
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="lang" value="English" id="lang-en">
+                            <label class="form-check-label" for="lang-en">English</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="lang" value="Italian" id="lang-it">
+                            <label class="form-check-label" for="lang-it">Italian</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="lang" value="Spanish" id="lang-es">
+                            <label class="form-check-label" for="lang-es">Spanish</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="lang" value="Portuguese" id="lang-pt">
+                            <label class="form-check-label" for="lang-pt">Portuguese</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="lang" value="German" id="lang-de">
+                            <label class="form-check-label" for="lang-de">German</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 text-end mt-3">
+                    <button class="btn btn-primary px-5" type="submit">APPLY</button>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <main class="col-12">
+    <div class="row">
+        {% for tour in tours %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <a href="{{ url_for('single_tour', id=tour.id) }}" class="text-decoration-none">
+                    <div class="card h-100 overlay-card">
+                        
+                        <img src="{{ url_for('static', filename=tour.tour_image) }}" class="card-img" alt="{{ tour.title }}">
+                        
+                        <div class="card-img-overlay d-flex flex-column justify-content-end p-4 gradient-overlay">
+                            {% if tour.id in booked_tour_ids %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Booked!</span>
+                            {% endif %}
+
+                            <h4 class="card-title mt-auto">{{ tour.title | e }}</h4>
+                            
+                            <p class="card-text text-truncate">{{ tour.description | e }}</p>
+                            
+                            <button type="button" class="btn read-more-btn">Read More</button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    No tours found.
+                    <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+</main>
+    </div>
+</div>
+{% endblock %}

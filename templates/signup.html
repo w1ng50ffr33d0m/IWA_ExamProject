@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block signup_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <main class="col-md-6 col-lg-5 mb-5">
+            
+            <section class="bg-dark p-4 border rounded shadow-sm">
+                <header>
+                    <h2 class="text-center mb-4">Create an Account</h2>
+                </header>
+                
+                <form action="/signup" method="POST">
+                    
+                    <fieldset class="d-flex justify-content-center mb-4 border-0 p-0">
+                        <legend class="visually-hidden">Choose your role</legend>
+                        <div class="btn-group w-100" role="group" aria-label="Role selection">
+                            <input type="radio" class="btn-check" name="role" id="role-participant" value="participant" autocomplete="off" checked onchange="toggleGuideFields()">
+                            <label class="btn btn-outline-light" for="role-participant">Participant</label>
+
+                            <input type="radio" class="btn-check" name="role" id="role-guide" value="guide" autocomplete="off" onchange="toggleGuideFields()">
+                            <label class="btn btn-outline-light" for="role-guide">Tour Guide</label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-3">
+                        <legend class="visually-hidden">Personal Details</legend>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="first-name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first-name" name="first_name" required>
+                            </div>
+                            <div class="col">
+                                <label for="last-name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last-name" name="last_name" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email-input" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email-input" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password-input" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password-input" name="password" required>
+                        </div>
+                    </fieldset>
+
+                    <fieldset id="guide-language-section" class="d-none mb-4 p-3 border border-secondary rounded">
+                        <legend class="form-label text-info fs-6 float-none w-auto px-2">Which languages can you speak?</legend>
+                        
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages" value="English" id="reg-lang-en">
+                            <label class="form-check-label" for="reg-lang-en">English</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages" value="Italian" id="reg-lang-it">
+                            <label class="form-check-label" for="reg-lang-it">Italian</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages" value="Spanish" id="reg-lang-es">
+                            <label class="form-check-label" for="reg-lang-es">Spanish</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages" value="Portuguese" id="reg-lang-pt">
+                            <label class="form-check-label" for="reg-lang-pt">Portuguese</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="languages" value="German" id="reg-lang-de">
+                            <label class="form-check-label" for="reg-lang-de">German</label>
+                        </div>
+                    </fieldset>
+
+                    <footer>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Sign Up</button>
+                        <p class="text-center mt-3 mb-0"><small>Already have an account? <a href="#" data-bs-toggle="modal" data-bs-target="#login-modal" class="text-info">Log in here</a></small></p>
+                    </footer>
+                    
+                </form>
+            </section>
+            
+        </main>
+    </div>
+</div>
+
+<script>
+    // toggles language selection block based on chosen user role
+    function toggleGuideFields() {
+        const guide_ui = document.getElementById('role-guide');
+        const languageSection = document.getElementById('guide-language-section');
+        
+        if (guide_ui.checked) {
+            languageSection.classList.remove('d-none');
+        } else {
+            languageSection.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Create a Tour{% endblock %}
+{% block create_tour_active %}active{% endblock %}
+
+{% block content %}
+{% set error_map = errors or {} %}
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <main class="col-md-8 col-lg-6 mb-5">
+            
+            <section class="bg-dark p-4 p-md-5 border rounded shadow-sm">
+                <header class="mb-4 text-center">
+                    <h2>Create a New Tour</h2>
+                    <p class="text-muted">Fill out the details below to publish your walking tour.</p>
+                </header>
+                
+                <form action="/create_tour" method="POST" enctype="multipart/form-data" novalidate>
+                    
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="visually-hidden">Tour Details</legend>
+                        
+                        <div class="mb-3">
+                            <label for="tour-title" class="form-label fw-bold">Tour Title</label>
+                            <input type="text" class="form-control {{ 'is-invalid' if error_map.title else '' }}" id="tour-title" name="title" placeholder="e.g., Hidden Secrets of the Colosseum" value="{{ form_data.title|default('') }}" required>
+                            {% if error_map.title %}<div class="invalid-feedback d-block">{{ error_map.title }}</div>{% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="tour-language" class="form-label fw-bold">Language</label>
+                                <select class="form-select {{ 'is-invalid' if error_map.language else '' }}" id="tour-language" name="language" required>
+                                    <option value="" disabled {% if not form_data.language|default('') %}selected{% endif %}>Select a language...</option>
+                                    {% set user_langs = current_user.languages.split(', ') %}
+                                    {% for lang in user_langs %}
+                                        {% if lang %}
+                                            <option value="{{ lang | e }}" {% if form_data.language|default('') == lang %}selected{% endif %}>{{ lang | e }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                {% if error_map.language %}<div class="invalid-feedback d-block">{{ error_map.language }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tour-duration" class="form-label fw-bold">Duration (Minutes)</label>
+                                <input type="number" class="form-control {{ 'is-invalid' if error_map.duration else '' }}" id="tour-duration" name="duration" min="0" step="15" placeholder="e.g. 120" value="{{ form_data.duration|default('') }}" required>
+                                {% if error_map.duration %}<div class="invalid-feedback d-block">{{ error_map.duration }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meeting-point" class="form-label fw-bold">Meeting Point</label>
+                            <input type="text" class="form-control {{ 'is-invalid' if error_map.meeting_point else '' }}" id="meeting-point" name="meeting_point" placeholder="e.g., Piazza Navona, next to the central fountain" value="{{ form_data.meeting_point|default('') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="max-participants" class="form-label fw-bold">Max Participants</label>
+                            <input type="number" class="form-control {{ 'is-invalid' if error_map.max_participants else '' }}" id="max-participants" name="max_participants" min="1" max="50" placeholder="e.g., 15" value="{{ form_data.max_participants|default('') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tour-description" class="form-label fw-bold">Description</label>
+                            <textarea class="form-control {{ 'is-invalid' if error_map.description else '' }}" id="tour-description" name="description" rows="5" placeholder="Describe what participants will see and do..." required>{{ form_data.description|default('') }}</textarea>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Itinerary Stops (Minimum 4)</legend>
+                        <div id="stops-container">
+                            {% set stop_values = form_data.stops|default([]) %}
+                            {% if stop_values is string %}{% set stop_values = [stop_values] %}{% endif %}
+                            {% for i in range(4) %}
+                            <input type="text" class="form-control mb-2 {{ 'is-invalid' if error_map.stops else '' }}" name="stops" placeholder="Stop {{ i + 1 }}" value="{{ stop_values[i]|default('') }}" required>
+                            {% endfor %}
+                            <input type="text" class="form-control mb-2 {{ 'is-invalid' if error_map.stops else '' }}" name="stops" placeholder="Stop 5 (Optional)" value="{{ stop_values[4]|default('') }}">
+                        </div>
+                        {% if error_map.stops %}<div class="invalid-feedback d-block">{{ error_map.stops }}</div>{% endif %}
+                        <button type="button" class="btn btn-outline-secondary d-flex gap-1" onclick="addStopField()">
+                            <i class="bi bi-plus-circle"></i><span>Add another stop</span>
+                        </button>
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Weekly Schedule</legend>
+                        <p class="text-muted small">Select the days and set the start time.</p>
+                        
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                        <div class="d-flex mb-2 align-items-center">
+                            <div class="form-check w-25">
+                                <input type="checkbox" name="days" value="{{ day | e }}" class="form-check-input" id="day-{{ day | e }}" {% if day in (form_data.days|default([])) %}checked{% endif %}>
+                                <label class="form-check-label" for="day-{{ day | e }}">{{ day | e }}</label>
+                            </div>
+                            <input type="time" name="time_{{ day | e }}" class="form-control text-white w-50" value="{{ form_data.get('time_' ~ day, '')|default('') }}">
+                        </div>
+                        {% endfor %}
+                    </fieldset>
+
+                    <fieldset class="border-0 p-0 mb-4">
+                        <legend class="form-label fw-bold">Promotional Photos (Exactly 5)</legend>
+                        <input class="form-control mb-2 {{ 'is-invalid' if error_map.photos else '' }}" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control mb-2 {{ 'is-invalid' if error_map.photos else '' }}" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control mb-2 {{ 'is-invalid' if error_map.photos else '' }}" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control mb-2 {{ 'is-invalid' if error_map.photos else '' }}" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control mb-2 {{ 'is-invalid' if error_map.photos else '' }}" type="file" name="tour_photos" accept="image/png, image/jpeg, image/jpg" required>
+                        {% if error_map.photos %}<div class="invalid-feedback d-block">{{ error_map.photos }}</div>{% endif %}
+                        <div class="form-text">Upload JPEG or PNG images.</div>
+                    </fieldset>
+
+                    <footer class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5">Publish Tour</button>
+                        <a href="{{ url_for('home') }}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                    </footer>
+                    
+                </form>
+            </section>
+            
+        </main>
+    </div>
+</div>
+
+<script>
+    // handles addition of itinerary stops
+    let stopCount = 5;
+
+    function addStopField() {
+        stopCount++;
+        const container = document.getElementById('stops-container');
+        const newInput = document.createElement('input');
+        
+        newInput.type = 'text';
+        newInput.className = 'form-control mb-2';
+        newInput.name = 'stops';
+        newInput.placeholder = `Stop ${stopCount} (Optional)`;
+        
+        container.appendChild(newInput);
+    }
+</script>
+{% endblock %}

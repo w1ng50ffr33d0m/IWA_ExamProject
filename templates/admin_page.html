@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block admin_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="row">
+        <main class="col-12 mb-5">
+            <h2 class="mb-4 text-white">Platform Administration</h2>
+            
+            <section class="row mb-5">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white text-center h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h1 class="display-4">{{ stats.tot_guides | e }}</h1>
+                            <p class="card-text fw-bold">Total Guides</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white text-center h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h1 class="display-4">{{ stats.tot_participants | e }}</h1>
+                            <p class="card-text fw-bold">Total Participants</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white text-center h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h1 class="display-4">{{ stats.tot_tours | e }}</h1>
+                            <p class="card-text fw-bold">Total Tours</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white text-center h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h1 class="display-4">{{ stats.tot_reservations | e }}</h1>
+                            <p class="card-text fw-bold">Total Reservations</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card shadow-sm mb-5">
+                <header class="card-header text-white">
+                    <h4 class="mb-0">Reservations by Language</h4>
+                </header>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for lang, count in stats.res_per_language.items() %}
+                        <li class="list-group-item text-white border-secondary d-flex justify-content-between align-items-center px-4">
+                            {{ lang | e }}
+                            <span class="badge bg-info text-dark rounded-pill fs-6">{{ count | e }}</span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item bg-dark text-muted border-secondary">No reservations recorded yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+
+            <section class="card shadow-sm text-white">
+                <header class="card-header text-white">
+                    <h4 class="mb-0">Registered Guides & Their Tours</h4>
+                </header>
+                <div class="card-body p-3">
+                    
+                    {% if guides %}
+                    <div class="accordion" id="guidesAccordion" data-bs-theme="dark">
+                        {% for guide in guides %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header bg-dark d-flex border-bottom border-secondary" id="heading-{{ loop.index }}">
+                                
+                            <div class="d-flex flex-grow-1 align-items-center justify-content-between py-3 ps-4 pe-3">
+                                <a href="{{ url_for('public_guide', id=guide.id) }}" class="text-decoration-none">
+                                    <span class="custom-link text-info fw-bold fs-4">{{ guide.first_name | e }} {{ guide.last_name | e }}</span>
+                                    <span class="text-white text-lowercase fs-6">({{ guide.email | e }})</span>
+                                </a>
+                                <span class="badge bg-primary">{{ guide.languages | e }}</span>
+                            </div>
+
+                            <button class="accordion-button collapsed text-white shadow-none rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                            </button>
+                                
+                            </h2>
+                            <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#guidesAccordion">
+                                <div class="accordion-body p-0">
+                                    
+                                    {% if guide.tours %}
+                                    <div class="list-group list-group-flush">
+                                        {% for tour in guide.tours %}
+                                        <div class="list-group-item border-secondary p-3 text-white">
+                                            <div class="row align-items-center">
+                                                
+                                                <div class="col-md-9 mb-3 mb-md-0">
+                                                    <h4 class="mb-1 pb-2">
+                                                        <a href="{{ url_for('single_tour', id=tour.id) }}" class="custom-link text-decoration-none fw-bold fs-5">
+                                                            {{ tour.title | e }}
+                                                        </a>
+                                                    </h4>
+                                                    {% if tour.description %}
+                                                        <p class="pb-2 small text-white-50">{{ tour.description | e }}</p>
+                                                    {% endif %}
+                                                    <div class="d-flex flex-wrap gap-2 small">
+                                                        <span class="badge"><i class="bi-light bi-translate"></i> {{ tour.language | e }}</span>
+                                                        <span class="badge"><i class="bi-light bi-clock"></i> {{ tour.duration | e }} min</span>
+                                                        <span class="badge"><i class="bi-light bi-people"></i> Max {{ tour.max_participants | e }}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-3">
+                                                    <div class="small">
+                                                        <strong class="text-white-50 d-block mb-2"><i class="bi-light bi-calendar-event"></i> Weekly Schedule:</strong>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            {% for sched in tour.schedules %}
+                                                                <span class="badge">{{ sched.weekday | e }} at {{ sched.start_time | e }}</span>
+                                                            {% else %}
+                                                                <span class="text-white-50">No schedule set.</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div class="p-4 text-center text-white-50">This guide hasn't created any tours yet.</div>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center p-4 text-white-50">No guides registered yet.</div>
+                    {% endif %}
+
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+{% endblock %}

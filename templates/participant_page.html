@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}My Reservations{% endblock %}
+{% block participant_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="row">
+        <main class="col-12 mb-5">
+            <h2 class="mb-4 mt-2">My Dashboard</h2>
+            
+            <h4 class="text-muted mt-4">Upcoming Tours</h4>
+
+            {% if upcoming_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-transparent table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tour Title</th>
+                                <th>Date & Time</th>
+                                <th>Meeting Point</th>
+                                <th>Total People</th>
+                                <th>Additional Names</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in upcoming_reservations %}
+                            <tr>
+                                <td class="fw-bold">
+                                    <a href="{{ url_for('single_tour', id=res.tour_id) }}" class="custom-link">
+                                        {{ res.title | e }}
+                                    </a>
+                                </td>
+                                <td>{{ res.tour_date | e }}<br><small class="text-muted">at {{ res.start_time | e }}</small></td>
+                                <td>{{ res.meeting_point | e }}</td>
+                                <td>{{ res.num_people | e }}</td>
+                                <td class="text-muted">
+                                    {% if res.extra_names %}
+                                        <small>{{ res.extra_names | e }}</small>
+                                    {% else %}
+                                        <small>None</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if res.can_cancel %}
+                                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancel-modal-{{ res.id }}">
+                                            Cancel
+                                        </button>
+
+                                        <div class="modal fade" id="cancel-modal-{{ res.id }}" tabindex="-1" aria-label="cancel-reservation-modal" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header border-danger">
+                                                        <h5 class="modal-title text-danger">Confirm Cancellation</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body text-wrap">
+                                                        Are you sure you want to cancel your reservation for <strong>{{ res.title | e }}</strong>?<br>
+                                                        <small class="text-muted">This action cannot be undone.</small>
+                                                    </div>
+                                                    <div class="modal-footer d-flex justify-content-center gap-2">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Reservation</button>
+                                                        <form action="/cancel_reservation" method="POST">
+                                                            <input type="hidden" name="reservation_id" value="{{ res.id }}">
+                                                            <button type="submit" class="btn btn-danger">Yes, Cancel Booking</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <button type="button" class="btn btn-outline-secondary btn-disabled btn-sm" title="Less than 24 hours remaining">Locked</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">
+                    You haven't booked any upcoming tours. <a href="{{ url_for('home') }}" class="alert-link">Browse available tours!</a>
+                </p>
+            {% endif %}
+
+            <h4 class="text-muted mt-5">Past Tours</h4>
+            
+            {% if past_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-transparent table-hover mt-2">
+                        <thead>
+                            <tr>
+                                <th>Tour Title</th>
+                                <th>Date & Time</th>
+                                <th>Meeting Point</th>
+                                <th>Total People</th>
+                                <th>Additional Names</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for res in past_reservations %}
+                            <tr>
+                                <td class="fw-bold">
+                                    <a href="{{ url_for('single_tour', id=res.tour_id) }}" class="text-secondary">
+                                        {{ res.title | e }}
+                                    </a>
+                                </td>
+                                <td>{{ res.tour_date | e }}<br><small class="text-muted">at {{ res.start_time | e }}</small></td>
+                                <td>{{ res.meeting_point | e }}</td>
+                                <td>{{ res.num_people | e }}</td>
+                                <td class="text-muted">
+                                    {% if res.extra_names %}
+                                        <small>{{ res.extra_names | e }}</small>
+                                    {% else %}
+                                        <small>None</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">Completed</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No past tours on record.</p>
+            {% endif %}
+
+        </main>
+    </div>
+</div>
+{% endblock %}
